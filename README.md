@@ -3,35 +3,37 @@
 Ultralightweight JSON parser in ANSI C.
 
 ## Table of contents
-* [License](#license)
-* [Usage](#usage)
-  * [Welcome to cJSON](#welcome-to-cjson)
-  * [Building](#building)
-    * [Copying the source](#copying-the-source)
-    * [CMake](#cmake)
-    * [Makefile](#makefile)
-    * [Vcpkg](#Vcpkg)
-  * [Including cJSON](#including-cjson)
-  * [Data Structure](#data-structure)
-  * [Working with the data structure](#working-with-the-data-structure)
-    * [Basic types](#basic-types)
-    * [Arrays](#arrays)
-    * [Objects](#objects)
-  * [Parsing JSON](#parsing-json)
-  * [Printing JSON](#printing-json)
-  * [Example](#example)
-    * [Printing](#printing)
-    * [Parsing](#parsing)
-  * [Caveats](#caveats)
-    * [Zero Character](#zero-character)
-    * [Character Encoding](#character-encoding)
-    * [C Standard](#c-standard)
-    * [Floating Point Numbers](#floating-point-numbers)
-    * [Deep Nesting Of Arrays And Objects](#deep-nesting-of-arrays-and-objects)
-    * [Thread Safety](#thread-safety)
-    * [Case Sensitivity](#case-sensitivity)
-    * [Duplicate Object Members](#duplicate-object-members)
-  * [Enjoy cJSON!](#enjoy-cjson)
+- [cJSON](#cjson)
+  - [Table of contents](#table-of-contents)
+  - [License](#license)
+  - [Usage](#usage)
+    - [Welcome to cJSON.](#welcome-to-cjson)
+    - [Building](#building)
+      - [copying the source](#copying-the-source)
+      - [CMake](#cmake)
+      - [Makefile](#makefile)
+      - [Vcpkg](#vcpkg)
+    - [Including cJSON](#including-cjson)
+    - [Data Structure](#data-structure)
+    - [Working with the data structure](#working-with-the-data-structure)
+      - [Basic types](#basic-types)
+      - [Arrays](#arrays)
+      - [Objects](#objects)
+    - [Parsing JSON](#parsing-json)
+    - [Printing JSON](#printing-json)
+    - [Example](#example)
+      - [Printing](#printing)
+      - [Parsing](#parsing)
+    - [Caveats (声明, 警告)](#caveats-声明-警告)
+      - [Zero Character](#zero-character)
+      - [Character Encoding](#character-encoding)
+      - [C Standard](#c-standard)
+      - [Floating Point Numbers](#floating-point-numbers)
+      - [Deep Nesting Of Arrays And Objects](#deep-nesting-of-arrays-and-objects)
+      - [Thread Safety](#thread-safety)
+      - [Case Sensitivity](#case-sensitivity)
+      - [Duplicate Object Members](#duplicate-object-members)
+- [Enjoy cJSON!](#enjoy-cjson)
 
 ## License
 
@@ -211,8 +213,8 @@ Additionally there are the following two flags:
 
 For every value type there is a `cJSON_Create...` function that can be used to create an item of that type.
 All of these will allocate a `cJSON` struct that can later be deleted with `cJSON_Delete`.
-Note that you have to delete them at some point, otherwise you will get a memory leak.  
-**Important**: If you have added an item to an array or an object already, you **mustn't** delete it with `cJSON_Delete`. Adding it to an array or object transfers its ownership so that when that array or object is deleted, 
+Note that you have to delete them at some point, otherwise you will get a memory leak.
+**Important**: If you have added an item to an array or an object already, you **mustn't** delete it with `cJSON_Delete`. Adding it to an array or object transfers its ownership so that when that array or object is deleted,
 it gets deleted as well. You also could use `cJSON_SetValuestring` to change a `cJSON_String`'s `valuestring`, and you needn't to free the previous `valuestring` manually.
 
 #### Basic types
@@ -521,7 +523,7 @@ end:
 
 Note that there are no NULL checks except for the result of `cJSON_Parse` because `cJSON_GetObjectItemCaseSensitive` checks for `NULL` inputs already, so a `NULL` value is just propagated and `cJSON_IsNumber` and `cJSON_IsString` return `0` if the input is `NULL`.
 
-### Caveats
+### Caveats (声明, 警告)
 
 #### Zero Character
 
