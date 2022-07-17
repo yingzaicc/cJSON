@@ -29,12 +29,12 @@
 #endif
 
 #ifdef __GNUC__
-#pragma GCC visibility push(default)
+#pragma GCC visibility push(default)  // 和下面的 warning (push) 类似
 #endif
 #if defined(_MSC_VER)
-#pragma warning (push)
+#pragma warning (push)  // 存储每个警告的当前警告状态 (其实是将警告状态入栈)
 /* disable warning about single line comments in system headers */
-#pragma warning (disable : 4001)
+#pragma warning (disable : 4001)  // 不发出 4001 警告 (多由于指令中出现多余或非法的符号)
 #endif
 
 #include <string.h>
@@ -45,12 +45,12 @@
 #include <ctype.h>
 #include <float.h>
 
-#ifdef ENABLE_LOCALES
+#ifdef ENABLE_LOCALES  // 区域
 #include <locale.h>
 #endif
 
 #if defined(_MSC_VER)
-#pragma warning (pop)
+#pragma warning (pop)  // 弹出推送到堆栈上的最后一个警告状态 (在 push 和 pop 之间对警告状态所做的任何更改都将被撤消)
 #endif
 #ifdef __GNUC__
 #pragma GCC visibility pop
@@ -62,7 +62,7 @@
 #ifdef true
 #undef true
 #endif
-#define true ((cJSON_bool)1)
+#define true ((cJSON_bool)1)  // typedef int cJSON_bool;
 
 #ifdef false
 #undef false
@@ -70,16 +70,16 @@
 #define false ((cJSON_bool)0)
 
 /* define isnan and isinf for ANSI C, if in C99 or above, isnan and isinf has been defined in math.h */
-#ifndef isinf
+#ifndef isinf  // isinf()函数是 cmath 标头的库函数，用于检查给定值是否为无限 (负无穷大或正无穷大)，无穷大返回 1，否则，返回 0
 #define isinf(d) (isnan((d - d)) && !isnan(d))
 #endif
-#ifndef isnan
-#define isnan(d) (d != d)
+#ifndef isnan  // snan()函数是 cmath 标头的库函数，用于检查给定的值是否为 NaN (非数字)。如果是给定值 NaN，返回 1，否则，返回 0
+#define isnan(d) (d != d)  // ??
 #endif
 
 #ifndef NAN
 #ifdef _WIN32
-#define NAN sqrt(-1.0)
+#define NAN sqrt(-1.0)  // 平方根
 #else
 #define NAN 0.0/0.0
 #endif
@@ -93,7 +93,7 @@ static error global_error = { NULL, 0 };
 
 CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)
 {
-    return (const char*) (global_error.json + global_error.position);
+    return (const char*) (global_error.json + global_error.position);  // ??
 }
 
 CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item)
@@ -124,7 +124,7 @@ CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item)
 CJSON_PUBLIC(const char*) cJSON_Version(void)
 {
     static char version[15];
-    sprintf(version, "%i.%i.%i", CJSON_VERSION_MAJOR, CJSON_VERSION_MINOR, CJSON_VERSION_PATCH);
+    sprintf(version, "%i.%i.%i", CJSON_VERSION_MAJOR, CJSON_VERSION_MINOR, CJSON_VERSION_PATCH);  // i%，signed int
 
     return version;
 }
@@ -181,10 +181,10 @@ static void * CJSON_CDECL internal_realloc(void *pointer, size_t size)
 #endif
 
 /* strlen of character literals resolved at compile time */
-#define static_strlen(string_literal) (sizeof(string_literal) - sizeof(""))
+#define static_strlen(string_literal) (sizeof(string_literal) - sizeof(""))  // sizeof("") = 1 ??
 
 static internal_hooks global_hooks = { internal_malloc, internal_free, internal_realloc };
-
+// 字符串复制
 static unsigned char* cJSON_strdup(const unsigned char* string, const internal_hooks * const hooks)
 {
     size_t length = 0;
@@ -217,7 +217,7 @@ CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks)
         return;
     }
 
-    global_hooks.allocate = malloc;
+    global_hooks.allocate = malloc;  // 有点重复
     if (hooks->malloc_fn != NULL)
     {
         global_hooks.allocate = hooks->malloc_fn;
