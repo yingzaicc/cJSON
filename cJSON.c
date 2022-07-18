@@ -256,7 +256,7 @@ CJSON_PUBLIC(void) cJSON_Delete(cJSON *item)
     while (item != NULL)
     {
         next = item->next;
-        if (!(item->type & cJSON_IsReference) && (item->child != NULL))
+        if (!(item->type & cJSON_IsReference) && (item->child != NULL))  // child 存放的是什么??
         {
             cJSON_Delete(item->child);
         }
@@ -294,18 +294,18 @@ typedef struct
 } parse_buffer;
 
 /* check if the given size is left to read in a given parse buffer (starting with 1) */
-#define can_read(buffer, size) ((buffer != NULL) && (((buffer)->offset + size) <= (buffer)->length))
+#define can_read(buffer, size) ((buffer != NULL) && (((buffer)->offset + size) <= (buffer)->length))  // ??
 /* check if the buffer can be accessed at the given index (starting with 0) */
 #define can_access_at_index(buffer, index) ((buffer != NULL) && (((buffer)->offset + index) < (buffer)->length))
 #define cannot_access_at_index(buffer, index) (!can_access_at_index(buffer, index))
 /* get a pointer to the buffer at the position */
-#define buffer_at_offset(buffer) ((buffer)->content + (buffer)->offset)
+#define buffer_at_offset(buffer) ((buffer)->content + (buffer)->offset)  // ??
 
 /* Parse the input text to generate a number, and populate the result into item. */
 static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_buffer)
 {
     double number = 0;
-    unsigned char *after_end = NULL;
+    unsigned char *after_end = NULL;  // 下一个字符 ??
     unsigned char number_c_string[64];
     unsigned char decimal_point = get_decimal_point();
     size_t i = 0;
@@ -320,7 +320,7 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
      * This also takes care of '\0' not necessarily being available for marking the end of the input */
     for (i = 0; (i < (sizeof(number_c_string) - 1)) && can_access_at_index(input_buffer, i); i++)
     {
-        switch (buffer_at_offset(input_buffer)[i])
+        switch (buffer_at_offset(input_buffer)[i])  // 数组??
         {
             case '0':
             case '1':
@@ -350,7 +350,7 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
 loop_end:
     number_c_string[i] = '\0';
 
-    number = strtod((const char*)number_c_string, (char**)&after_end);
+    number = strtod((const char*)number_c_string, (char**)&after_end);  // strtod() 将字符串转换为浮点值
     if (number_c_string == after_end)
     {
         return false; /* parse_error */
@@ -374,7 +374,7 @@ loop_end:
 
     item->type = cJSON_Number;
 
-    input_buffer->offset += (size_t)(after_end - number_c_string);
+    input_buffer->offset += (size_t)(after_end - number_c_string);  // ??
     return true;
 }
 
@@ -405,7 +405,7 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
     {
         return NULL;
     }
-    if (strlen(valuestring) <= strlen(object->valuestring))
+    if (strlen(valuestring) <= strlen(object->valuestring))  // 如果要拷贝的字符串长度比原有字符串长度小，直接拷贝内容；否则，需要重新分配内存
     {
         strcpy(object->valuestring, valuestring);
         return object->valuestring;
@@ -458,10 +458,10 @@ static unsigned char* ensure(printbuffer * const p, size_t needed)
         return NULL;
     }
 
-    needed += p->offset + 1;
+    needed += p->offset + 1;  // ??
     if (needed <= p->length)
     {
-        return p->buffer + p->offset;
+        return p->buffer + p->offset;  // ??
     }
 
     if (p->noalloc) {
@@ -531,14 +531,14 @@ static void update_offset(printbuffer * const buffer)
     }
     buffer_pointer = buffer->buffer + buffer->offset;
 
-    buffer->offset += strlen((const char*)buffer_pointer);
+    buffer->offset += strlen((const char*)buffer_pointer);  // ??
 }
 
-/* securely comparison of floating-point variables */
+/* securely comparison of floating-point variables 判断两个浮点数是否相等 */
 static cJSON_bool compare_double(double a, double b)
 {
-    double maxVal = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
-    return (fabs(a - b) <= maxVal * DBL_EPSILON);
+    double maxVal = fabs(a) > fabs(b) ? fabs(a) : fabs(b);  // fabs() 求浮点数的绝对值
+    return (fabs(a - b) <= maxVal * DBL_EPSILON);  // DBL_EPSILON 和 FLT_EPSILON 是极小值，主要用于单精度和双精度的比较当中
 }
 
 /* Render the number nicely from the given item into a string. */
@@ -568,8 +568,8 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
 	}
     else
     {
-        /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits */
-        length = sprintf((char*)number_buffer, "%1.15g", d);
+        /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits 先用 15 位精度试一下，和原值比较，如果不等，改用 17 位精度 */
+        length = sprintf((char*)number_buffer, "%1.15g", d);  // %g：double
 
         /* Check whether the original double can be recovered */
         if ((sscanf((char*)number_buffer, "%lg", &test) != 1) || !compare_double((double)test, d))
@@ -606,12 +606,12 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     }
     output_pointer[i] = '\0';
 
-    output_buffer->offset += (size_t)length;
+    output_buffer->offset += (size_t)length;  // offset 是缓冲区中已使用的大小 ??
 
     return true;
 }
 
-/* parse 4 digit hexadecimal number */
+/* parse 4 digit hexadecimal number 解析 4 位 16 进制数字 */
 static unsigned parse_hex4(const unsigned char * const input)
 {
     unsigned int h = 0;
@@ -640,13 +640,13 @@ static unsigned parse_hex4(const unsigned char * const input)
         if (i < 3)
         {
             /* shift left to make place for the next nibble */
-            h = h << 4;
+            h = h << 4;  // 1 个 int 4 bytes.这里将 16 进制的每位数字用 4 位数字表示，最终 h 长度是 16 ??
         }
     }
 
     return h;
 }
-
+// UTF-16 字面值转换为 UTF-8
 /* converts a UTF-16 literal to UTF-8
  * A literal can be one or two sequences of the form \uXXXX */
 static unsigned char utf16_literal_to_utf8(const unsigned char * const input_pointer, const unsigned char * const input_end, unsigned char **output_pointer)
@@ -659,7 +659,7 @@ static unsigned char utf16_literal_to_utf8(const unsigned char * const input_poi
     unsigned char sequence_length = 0;
     unsigned char first_byte_mark = 0;
 
-    if ((input_end - first_sequence) < 6)
+    if ((input_end - first_sequence) < 6)  // ??
     {
         /* input ends unexpectedly */
         goto fail;
@@ -669,15 +669,15 @@ static unsigned char utf16_literal_to_utf8(const unsigned char * const input_poi
     first_code = parse_hex4(first_sequence + 2);
 
     /* check that the code is valid */
-    if (((first_code >= 0xDC00) && (first_code <= 0xDFFF)))
+    if (((first_code >= 0xDC00) && (first_code <= 0xDFFF)))  // ??
     {
         goto fail;
     }
 
-    /* UTF16 surrogate pair */
-    if ((first_code >= 0xD800) && (first_code <= 0xDBFF))
+    /* UTF16 surrogate (代理) pair */
+    if ((first_code >= 0xD800) && (first_code <= 0xDBFF))  // ??
     {
-        const unsigned char *second_sequence = first_sequence + 6;
+        const unsigned char *second_sequence = first_sequence + 6;  // ??
         unsigned int second_code = 0;
         sequence_length = 12; /* \uXXXX\uXXXX */
 
@@ -704,7 +704,7 @@ static unsigned char utf16_literal_to_utf8(const unsigned char * const input_poi
 
 
         /* calculate the unicode codepoint from the surrogate pair */
-        codepoint = 0x10000 + (((first_code & 0x3FF) << 10) | (second_code & 0x3FF));
+        codepoint = 0x10000 + (((first_code & 0x3FF) << 10) | (second_code & 0x3FF));  // ??
     }
     else
     {
@@ -769,7 +769,7 @@ fail:
     return 0;
 }
 
-/* Parse the input text into an unescaped cinput, and populate item. */
+/* Parse the input text into an unescaped (未转义的) cinput, and populate (插入) item. */
 static cJSON_bool parse_string(cJSON * const item, parse_buffer * const input_buffer)
 {
     const unsigned char *input_pointer = buffer_at_offset(input_buffer) + 1;
