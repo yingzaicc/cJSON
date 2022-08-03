@@ -1,20 +1,20 @@
-set(CMAKE_LEGACY_CYGWIN_WIN32 0)
+set(CMAKE_LEGACY_CYGWIN_WIN32 0)  # 自定义变量
 cmake_minimum_required(VERSION 3.0)
 
 project(cJSON
     VERSION 1.7.15
     LANGUAGES C)
+# 最新版本如果设置为 OLD，会警告
+cmake_policy(SET CMP0054 NEW)  # set CMP0054 policy (NEW:括起来或引起来的参数不会被深度解引用)
 
-cmake_policy(SET CMP0054 NEW)  # set CMP0054 policy
-
-include(GNUInstallDirs)
+include(GNUInstallDirs)  # GNU 的标准安装路径
 
 set(CJSON_VERSION_SO 1)
 set(CJSON_UTILS_VERSION_SO 1)
 
-set(custom_compiler_flags)
+set(custom_compiler_flags)  # 自定义编译选项
 
-include(CheckCCompilerFlag)
+include(CheckCCompilerFlag)  # 检查 C 编译器是否支持指定的编译标志
 option(ENABLE_CUSTOM_COMPILER_FLAGS "Enables custom compiler flags" ON)
 if (ENABLE_CUSTOM_COMPILER_FLAGS)
     if (("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang") OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU"))
@@ -60,7 +60,7 @@ if (ENABLE_CUSTOM_COMPILER_FLAGS)
         )
     endif()
 endif()
-
+# 启用地址杀毒器和未定义行为杀毒器
 option(ENABLE_SANITIZERS "Enables AddressSanitizer and UndefinedBehaviorSanitizer." OFF)
 if (ENABLE_SANITIZERS)
     list(APPEND custom_compiler_flags
@@ -74,7 +74,7 @@ if (ENABLE_SANITIZERS)
         -fno-sanitize-recover
         )
 endif()
-
+# 启用代码指针完整性项目传递的SafeStack检测
 option(ENABLE_SAFE_STACK "Enables the SafeStack instrumentation pass by the Code Pointer Integrity Project" OFF)
 if (ENABLE_SAFE_STACK)
     if (ENABLE_SANITIZERS)
@@ -84,21 +84,22 @@ if (ENABLE_SAFE_STACK)
         -fsanitize=safe-stack
         )
 endif()
-
+# 允许导出库标志
 option(ENABLE_PUBLIC_SYMBOLS "Export library symbols." On)
 if (ENABLE_PUBLIC_SYMBOLS)
     list(APPEND custom_compiler_flags -fvisibility=hidden)
-    add_definitions(-DCJSON_EXPORT_SYMBOLS -DCJSON_API_VISIBILITY)
+    add_definitions(-DCJSON_EXPORT_SYMBOLS -DCJSON_API_VISIBILITY)  # 在源文件的编译中添加-D定义标志
 endif()
+# 隐藏库标志
 option(ENABLE_HIDDEN_SYMBOLS "Hide library symbols." Off)
 if (ENABLE_HIDDEN_SYMBOLS)
     add_definitions(-DCJSON_HIDE_SYMBOLS -UCJSON_API_VISIBILITY)
 endif()
 
-# apply custom compiler flags
+# apply custom compiler flags 类似基于范围的 for 循环
 foreach(compiler_flag ${custom_compiler_flags})
-    #remove problematic characters
-    string(REGEX REPLACE "[^a-zA-Z0-9]" "" current_variable ${compiler_flag})
+    #remove problematic characters 移除有问题的字符
+    string(REGEX REPLACE "[^a-zA-Z0-9]" "" current_variable ${compiler_flag})  # 把数字和字母以外的字符都替换为空，然后保存到 current_variable 中
 
     CHECK_C_COMPILER_FLAG(${compiler_flag} "FLAG_SUPPORTED_${current_variable}")
     if (FLAG_SUPPORTED_${current_variable})
@@ -108,7 +109,7 @@ foreach(compiler_flag ${custom_compiler_flags})
 endforeach()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${supported_compiler_flags}")
-
+# 开启构建动态库
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(ENABLE_TARGET_EXPORT "Enable exporting of CMake targets. Disable when it causes problems!" ON)
 
@@ -132,19 +133,21 @@ endif()
 
 if (NOT BUILD_SHARED_AND_STATIC_LIBS)
     add_library("${CJSON_LIB}" "${CJSON_LIBRARY_TYPE}" "${HEADERS}" "${SOURCES}")
-else()
+else()  # 同时构建同名静态库和动态库
     # See https://cmake.org/Wiki/CMake_FAQ#How_do_I_make_my_shared_and_static_libraries_have_the_same_root_name.2C_but_different_suffixes.3F
     add_library("${CJSON_LIB}" SHARED "${HEADERS}" "${SOURCES}")
     add_library("${CJSON_LIB}-static" STATIC "${HEADERS}" "${SOURCES}")
     set_target_properties("${CJSON_LIB}-static" PROPERTIES OUTPUT_NAME "${CJSON_LIB}")
     set_target_properties("${CJSON_LIB}-static" PROPERTIES PREFIX "lib")
 endif()
+
 if (NOT WIN32)
     target_link_libraries("${CJSON_LIB}" m)
 endif()
-
+# .pc (package configure) 是包 (库) 配置文件, 保存了该库的头文件、库所在的路径信息
+# CMAKE_CURRENT_BINARY_DIR 是当前程序执行目录，也就是 build 目录
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/library_config/libcjson.pc.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc" @ONLY)
+    "${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc" @ONLY)  # @ONLY 严格限制变量替换形式为 @VAR@
 
 install(FILES cJSON.h DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}/cjson")
 install (FILES "${CMAKE_CURRENT_BINARY_DIR}/libcjson.pc" DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig")
@@ -157,11 +160,12 @@ install(TARGETS "${CJSON_LIB}"
 )
 if (BUILD_SHARED_AND_STATIC_LIBS)
     install(TARGETS "${CJSON_LIB}-static"
-    EXPORT "${CJSON_LIB}" 
+    EXPORT "${CJSON_LIB}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
     INCLUDES DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}"
 )
 endif()
+
 if(ENABLE_TARGET_EXPORT)
     # export library information for CMake projects
     install(EXPORT "${CJSON_LIB}" DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/cmake/cJSON")
@@ -205,8 +209,8 @@ if(ENABLE_CJSON_UTILS)
         INCLUDES DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}"
     )
     if (BUILD_SHARED_AND_STATIC_LIBS)
-        install(TARGETS "${CJSON_UTILS_LIB}-static" 
-        EXPORT "${CJSON_UTILS_LIB}" 
+        install(TARGETS "${CJSON_UTILS_LIB}-static"
+        EXPORT "${CJSON_UTILS_LIB}"
         ARCHIVE DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
         INCLUDES DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}"
         )
@@ -253,7 +257,7 @@ if(ENABLE_CJSON_TEST)
 
     # Disable -fsanitize=float-divide-by-zero for cJSON_test
     if (FLAG_SUPPORTED_fsanitizefloatdividebyzero)
-        if ("${CMAKE_VERSION}" VERSION_LESS "2.8.12")
+        if ("${CMAKE_VERSION}" VERSION_LESS "2.8.12")  # 版本号比较
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-sanitize=float-divide-by-zero")
         else()
             target_compile_options(${TEST_CJSON} PRIVATE "-fno-sanitize=float-divide-by-zero")
